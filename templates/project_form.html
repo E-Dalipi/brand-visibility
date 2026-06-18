@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}New Project — Brand Visibility{% endblock %}
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">New Project</h1>
+
+    <form method="POST" class="bg-white rounded-xl border border-surface-200 p-6">
+        <div class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Brand Name</label>
+                <input type="text" name="name" placeholder="e.g. Eddie Nehani" required
+                       class="w-full px-4 py-2.5 border border-surface-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Your Domain</label>
+                <input type="text" name="domain" placeholder="e.g. eddienehani.com" required
+                       class="w-full px-4 py-2.5 border border-surface-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Competitors</label>
+                <div id="competitors" class="space-y-2">
+                    <div class="flex gap-2 competitor-row">
+                        <input type="text" name="comp_name[]" placeholder="Name" class="flex-1 px-4 py-2 border border-surface-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+                        <input type="text" name="comp_domain[]" placeholder="domain.com" class="flex-1 px-4 py-2 border border-surface-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+                    </div>
+                </div>
+                <button type="button" onclick="addCompetitor()"
+                        class="mt-2 text-sm text-brand-600 hover:text-brand-700 font-medium">+ Add competitor</button>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button type="submit" class="px-6 py-2.5 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors">
+                Create Project
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+function addCompetitor() {
+    const container = document.getElementById('competitors');
+    const row = document.createElement('div');
+    row.className = 'flex gap-2 competitor-row';
+    row.innerHTML = `
+        <input type="text" name="comp_name[]" placeholder="Name" class="flex-1 px-4 py-2 border border-surface-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+        <input type="text" name="comp_domain[]" placeholder="domain.com" class="flex-1 px-4 py-2 border border-surface-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+        <button type="button" onclick="this.parentElement.remove()" class="px-2 text-gray-400 hover:text-red-500 text-lg">×</button>
+    `;
+    container.appendChild(row);
+}
+</script>
+
+{% endblock %}

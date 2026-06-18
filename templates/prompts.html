@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Prompts — {{ project.name }}{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <a href="{{ url_for('dashboard', project_id=project.id) }}" class="text-sm text-brand-600 hover:underline">← Dashboard</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-1">Tracked Prompts</h1>
+        <p class="text-sm text-gray-500">{{ project.name }} · {{ project.domain }}</p>
+    </div>
+</div>
+
+<!-- Add prompt form -->
+<div class="bg-white rounded-xl border border-surface-200 p-6 mb-8">
+    <h3 class="text-sm font-semibold text-gray-900 mb-4">Add New Prompt</h3>
+    <form method="POST" action="{{ url_for('add_prompt', project_id=project.id) }}">
+        <div class="flex flex-col gap-4">
+            <div>
+                <input type="text" name="prompt_string" placeholder="e.g. Who are the best SEO consultants in Toronto?"
+                       class="w-full px-4 py-2.5 border border-surface-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none"
+                       required>
+            </div>
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-medium text-gray-500 uppercase">Models:</span>
+                    {% for m in ['chatgpt', 'claude', 'gemini', 'perplexity'] %}
+                    <label class="flex items-center gap-1.5 text-sm text-gray-700">
+                        <input type="checkbox" name="models[]" value="{{ m }}" checked
+                               class="rounded border-surface-300 text-brand-600 focus:ring-brand-200">
+                        {{ m }}
+                    </label>
+                    {% endfor %}
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-medium text-gray-500 uppercase">Frequency:</span>
+                    <select name="frequency" class="px-3 py-1.5 text-sm border border-surface-300 rounded-lg focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+                        <option value="daily">Daily</option>
+                        <option value="weekly" selected>Weekly</option>
+                        <option value="manual">Manual</option>
+                    </select>
+                </div>
+                <button type="submit" class="px-5 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors ml-auto">
+                    Add Prompt
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Prompt list -->
+<div class="space-y-3">
+    {% for p in prompts %}
+    <div class="bg-white rounded-xl border border-surface-200 p-5 {% if not p.active %}opacity-60{% endif %}">
+        <div class="flex items-start justify-between">
+            <div class="flex-1">
+                <a href="{{ url_for('responses_page', prompt_id=p.id) }}" class="text-sm font-medium text-gray-900 hover:text-brand-600 transition-colors">
+                    "{{ p.prompt_string }}"
+                </a>
+                <div class="flex items-center gap-3 mt-2">
+                    <span class="text-xs px-2 py-0.5 rounded-full {% if p.active %}bg-green-50 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                        {{ 'active' if p.active else 'paused' }}
+                    </span>
+                    <span class="text-xs text-gray-400">{{ p.frequency }}</span>
+                    <span class="text-xs text-gray-400">{{ p.run_count }} runs</span>
+                    <div class="flex gap-1">
+                        {% for m in p.models_list %}
+                        <span class="text-xs px-1.5 py-0.5 rounded bg-surface-100 text-gray-500">{{ m }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 ml-4">
+                <form method="POST" action="{{ url_for('toggle_prompt', prompt_id=p.id) }}">
+                    <button type="submit" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-surface-300 text-gray-600 hover:bg-surface-50 transition-colors">
+                        {{ 'Pause' if p.active else 'Resume' }}
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('delete_prompt', prompt_id=p.id) }}"
+                      onsubmit="return confirm('Delete this prompt and all its data?')">
+                    <button type="submit" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if not prompts %}
+    <div class="text-center py-12 text-gray-400">
+        <p class="text-lg mb-2">No prompts yet</p>
+        <p class="text-sm">Add a prompt above to start tracking your brand's AI visibility.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Responses — {{ prompt.prompt_string[:50] }}{% endblock %}
+{% block content %}
+
+<div class="mb-8">
+    <a href="{{ url_for('prompts_page', project_id=project.id) }}" class="text-sm text-brand-600 hover:underline">← Prompts</a>
+    <h1 class="text-xl font-bold text-gray-900 mt-1">"{{ prompt.prompt_string }}"</h1>
+    <p class="text-sm text-gray-500">{{ project.name }} · {{ responses|length }} recent responses</p>
+</div>
+
+<div class="space-y-4">
+    {% for r in responses %}
+    <div class="bg-white rounded-xl border border-surface-200 overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-surface-100
+            {% if r.brand_mentioned %}bg-green-50{% else %}bg-surface-50{% endif %}">
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-semibold uppercase
+                    {% if r.model == 'chatgpt' %}text-emerald-700
+                    {% elif r.model == 'claude' %}text-amber-700
+                    {% elif r.model == 'gemini' %}text-blue-700
+                    {% elif r.model == 'perplexity' %}text-purple-700
+                    {% else %}text-gray-700{% endif %}">
+                    {{ r.model }}
+                </span>
+                <span class="text-xs text-gray-400">{{ r.run_at }}</span>
+            </div>
+            <div>
+                {% if r.brand_mentioned %}
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">✅ MENTIONED</span>
+                {% else %}
+                <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">Not mentioned</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="px-5 py-4">
+            <div class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">{{ r.response_text[:2000] }}{% if r.response_text|length > 2000 %}...{% endif %}</div>
+
+            {% if r.comp_mentions %}
+            <div class="mt-3 pt-3 border-t border-surface-100">
+                <span class="text-xs font-medium text-gray-500">Competitors mentioned:</span>
+                {% for name, count in r.comp_mentions.items() %}
+                <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 ml-1">{{ name }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if r.citations_list %}
+            <div class="mt-2 pt-2 border-t border-surface-100">
+                <span class="text-xs font-medium text-gray-500">Citations:</span>
+                <div class="mt-1 space-y-1">
+                    {% for url in r.citations_list[:10] %}
+                    <a href="{{ url }}" target="_blank" class="block text-xs text-brand-600 hover:underline truncate">{{ url }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if not responses %}
+    <div class="text-center py-12 text-gray-400">
+        <p class="text-lg mb-2">No responses yet</p>
+        <p class="text-sm">Run this prompt to see AI responses here.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
