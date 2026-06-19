@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Free SEO Tools — Eddie Nehani{% endblock %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto text-center mb-12">
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Free SEO & AI Visibility Tools</h1>
+    <p class="text-lg text-gray-500 max-w-2xl mx-auto">
+        Find out if your content is differentiated or commodity, and make sure AI engines
+        know who you are. Built by <a href="https://eddienehani.com" class="text-brand-600 hover:underline">Eddie Nehani</a>.
+    </p>
+</div>
+
+<div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+
+    <!-- Entity Map Generator -->
+    <a href="{{ url_for('entitymap_page') }}"
+       class="bg-white rounded-2xl border border-surface-200 p-8 hover:border-brand-300 hover:shadow-lg transition-all stat-card group">
+        <div class="w-14 h-14 bg-brand-50 rounded-xl flex items-center justify-center mb-5 group-hover:bg-brand-100 transition-colors">
+            <svg class="w-7 h-7 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+            </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Entity Map Generator</h2>
+        <p class="text-sm text-gray-500 mb-4">
+            Generate an <code class="text-xs bg-surface-100 px-1.5 py-0.5 rounded">entitymap.json</code>
+            for your website — the file that tells AI systems what your site knows,
+            who you are, and where the evidence is.
+        </p>
+        <div class="flex items-center gap-2">
+            <span class="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 font-medium">Free · 3/day</span>
+            <span class="text-xs px-2 py-1 rounded-full bg-surface-100 text-gray-500">~2 min</span>
+        </div>
+    </a>
+
+    <!-- Commodity Audit -->
+    <a href="{{ url_for('audit_page') }}"
+       class="bg-white rounded-2xl border border-surface-200 p-8 hover:border-brand-300 hover:shadow-lg transition-all stat-card group">
+        <div class="w-14 h-14 bg-amber-50 rounded-xl flex items-center justify-center mb-5 group-hover:bg-amber-100 transition-colors">
+            <svg class="w-7 h-7 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Commodity Content Audit</h2>
+        <p class="text-sm text-gray-500 mb-4">
+            Is your page differentiated, or could anyone have written it?
+            Judges your content against ranking competitors and what AI already says.
+        </p>
+        <div class="flex items-center gap-2">
+            <span class="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 font-medium">Free · 3/day</span>
+            <span class="text-xs px-2 py-1 rounded-full bg-surface-100 text-gray-500">~2 min</span>
+        </div>
+    </a>
+</div>
+
+<div class="max-w-4xl mx-auto mt-12 text-center">
+    <p class="text-xs text-gray-400">
+        Your data stays private. No content is stored. API keys never reach your browser.
+        <br>Tools powered by Claude, Perplexity, and SerpAPI — running on Eddie's infrastructure.
+    </p>
+</div>
+
+{% endblock %}

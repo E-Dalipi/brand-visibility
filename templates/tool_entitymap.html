@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}Entity Map Generator — Free SEO Tool{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto">
+    <a href="{{ url_for('tools_landing') }}" class="text-sm text-brand-600 hover:underline">← All Tools</a>
+
+    <div class="mt-4 mb-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-3">Entity Map Generator</h1>
+        <p class="text-gray-500">
+            Generate a valid <code class="text-sm bg-surface-100 px-1.5 py-0.5 rounded">entitymap.json</code>
+            for your website. This tells AI systems what your site knows — your entities,
+            how they relate, and where the evidence is.
+            Based on the <a href="https://entitymap.org/spec/v1.0" target="_blank" class="text-brand-600 hover:underline">EntityMap v1.0</a> open standard.
+        </p>
+    </div>
+
+    <!-- Input form -->
+    <div class="bg-white rounded-2xl border border-surface-200 p-8 mb-8" id="form-section">
+        <div class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
+                <input type="url" id="url" placeholder="https://yoursite.com"
+                       class="w-full px-4 py-3 border border-surface-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none"
+                       required>
+                <p class="text-xs text-gray-400 mt-1">We'll crawl your homepage and key internal pages.</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Brand / Publisher Name</label>
+                <input type="text" id="publisher_name" placeholder="e.g. Acme Corp"
+                       class="w-full px-4 py-3 border border-surface-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+                <p class="text-xs text-gray-400 mt-1">How your brand should be attributed in the entity map.</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-gray-400 font-normal">(optional — get the full JSON file emailed)</span></label>
+                <input type="email" id="email" placeholder="you@example.com"
+                       class="w-full px-4 py-3 border border-surface-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+            </div>
+            <button onclick="startGeneration()" id="submit-btn"
+                    class="w-full py-3 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors">
+                Generate Entity Map
+            </button>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="hidden bg-brand-50 border border-brand-200 rounded-2xl p-6 mb-8" id="progress-section">
+        <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-brand-600 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            <p class="text-sm font-medium text-brand-800" id="progress-text">Starting...</p>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="hidden" id="results-section">
+        <!-- Stats cards -->
+        <div class="grid grid-cols-4 gap-3 mb-6" id="stats-cards"></div>
+
+        <!-- Validation -->
+        <div class="hidden mb-6" id="validation-section">
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <h3 class="text-sm font-semibold text-amber-800 mb-2">⚠️ Validation Notes</h3>
+                <ul class="text-xs text-amber-700 space-y-1" id="validation-list"></ul>
+            </div>
+        </div>
+
+        <!-- Entity list -->
+        <div class="bg-white rounded-2xl border border-surface-200 p-6 mb-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">Entities Found</h3>
+            <div id="entity-list" class="space-y-3"></div>
+        </div>
+
+        <!-- JSON output -->
+        <div class="bg-white rounded-2xl border border-surface-200 p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-gray-900">entitymap.json</h3>
+                <div class="flex gap-2">
+                    <button onclick="copyJson()" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-surface-300 text-gray-600 hover:bg-surface-50">
+                        Copy JSON
+                    </button>
+                    <button onclick="downloadJson()" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-600 text-white hover:bg-brand-700">
+                        Download
+                    </button>
+                </div>
+            </div>
+            <pre class="bg-gray-900 text-gray-100 rounded-xl p-4 text-xs overflow-x-auto max-h-96 overflow-y-auto" id="json-output"></pre>
+        </div>
+
+        <!-- CTA -->
+        <div class="bg-gradient-to-r from-brand-600 to-brand-700 rounded-2xl p-8 text-center text-white">
+            <h3 class="text-lg font-bold mb-2">Want to know if AI engines actually cite your entities?</h3>
+            <p class="text-sm text-brand-100 mb-4">
+                The entity map tells AI what you know. But is it working? I can audit your
+                AI visibility and tell you exactly where you're invisible.
+            </p>
+            <a href="https://eddienehani.com/get-in-touch/" target="_blank"
+               class="inline-block px-6 py-2.5 bg-white text-brand-700 font-semibold rounded-xl hover:bg-brand-50 transition-colors text-sm">
+                Book a Free Strategy Call
+            </a>
+        </div>
+    </div>
+
+    <!-- Error -->
+    <div class="hidden" id="error-section">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+            <p class="text-sm text-red-700" id="error-text"></p>
+            <button onclick="location.reload()" class="mt-3 px-4 py-2 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
+                Try Again
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let entitymapData = null;
+
+async function startGeneration() {
+    const url = document.getElementById('url').value.trim();
+    const publisher_name = document.getElementById('publisher_name').value.trim();
+    const email = document.getElementById('email').value.trim();
+
+    if (!url) { alert('Please enter a URL.'); return; }
+
+    document.getElementById('form-section').classList.add('opacity-50');
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = 'Generating...';
+    document.getElementById('progress-section').classList.remove('hidden');
+
+    try {
+        const resp = await fetch('/api/entitymap/generate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url, publisher_name, email})
+        });
+
+        if (resp.status === 429) {
+            const data = await resp.json();
+            showError(data.error);
+            return;
+        }
+
+        const {job_id} = await resp.json();
+        pollJob(job_id);
+    } catch (e) {
+        showError('Something went wrong. Please try again.');
+    }
+}
+
+async function pollJob(jobId) {
+    const resp = await fetch(`/api/job/${jobId}`);
+    const data = await resp.json();
+
+    if (data.status === 'running') {
+        document.getElementById('progress-text').textContent = data.progress;
+        setTimeout(() => pollJob(jobId), 2000);
+        return;
+    }
+
+    // Done
+    document.getElementById('progress-section').classList.add('hidden');
+    document.getElementById('form-section').classList.add('hidden');
+
+    if (data.result.error) {
+        showError(data.result.error);
+        return;
+    }
+
+    showResults(data.result);
+}
+
+function showResults(result) {
+    entitymapData = result.entitymap;
+    const stats = result.stats;
+
+    // Stats cards
+    document.getElementById('stats-cards').innerHTML = `
+        <div class="bg-white rounded-xl border border-surface-200 p-4 text-center">
+            <p class="text-2xl font-bold text-brand-600">${stats.pages_crawled}</p>
+            <p class="text-xs text-gray-500">Pages Crawled</p>
+        </div>
+        <div class="bg-white rounded-xl border border-surface-200 p-4 text-center">
+            <p class="text-2xl font-bold text-brand-600">${stats.entities_found}</p>
+            <p class="text-xs text-gray-500">Entities</p>
+        </div>
+        <div class="bg-white rounded-xl border border-surface-200 p-4 text-center">
+            <p class="text-2xl font-bold text-brand-600">${stats.total_chunks}</p>
+            <p class="text-xs text-gray-500">Evidence Chunks</p>
+        </div>
+        <div class="bg-white rounded-xl border border-surface-200 p-4 text-center">
+            <p class="text-2xl font-bold text-brand-600">${stats.total_relations}</p>
+            <p class="text-xs text-gray-500">Relations</p>
+        </div>
+    `;
+
+    // Validation
+    if (result.validation && result.validation.length > 0) {
+        document.getElementById('validation-section').classList.remove('hidden');
+        document.getElementById('validation-list').innerHTML =
+            result.validation.map(v => `<li>• ${v}</li>`).join('');
+    }
+
+    // Entity list
+    const typeColors = {
+        'Person': 'bg-blue-50 text-blue-700',
+        'Organization': 'bg-purple-50 text-purple-700',
+        'Service': 'bg-green-50 text-green-700',
+        'Concept': 'bg-amber-50 text-amber-700',
+        'ProprietaryTerm': 'bg-red-50 text-red-700',
+        'Methodology': 'bg-indigo-50 text-indigo-700',
+        'Metric': 'bg-cyan-50 text-cyan-700',
+    };
+
+    document.getElementById('entity-list').innerHTML = entitymapData.entities.map(e => {
+        const color = typeColors[e['@type']] || 'bg-gray-50 text-gray-700';
+        const chunks = e.hasChunks ? e.hasChunks.length : 0;
+        const rels = e.relations ? e.relations.length : 0;
+        return `
+            <div class="border border-surface-100 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs px-2 py-0.5 rounded-full ${color} font-medium">${e['@type']}</span>
+                    <span class="text-sm font-semibold text-gray-900">${e.name}</span>
+                </div>
+                <p class="text-xs text-gray-500 mb-2">${e.description || ''}</p>
+                <div class="flex gap-3 text-xs text-gray-400">
+                    <span>${chunks} chunk${chunks !== 1 ? 's' : ''}</span>
+                    <span>${rels} relation${rels !== 1 ? 's' : ''}</span>
+                    ${e.sameAs ? `<a href="${e.sameAs}" target="_blank" class="text-brand-500 hover:underline">Wikidata ↗</a>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // JSON
+    document.getElementById('json-output').textContent = JSON.stringify(entitymapData, null, 2);
+
+    document.getElementById('results-section').classList.remove('hidden');
+}
+
+function showError(msg) {
+    document.getElementById('progress-section').classList.add('hidden');
+    document.getElementById('error-text').textContent = msg;
+    document.getElementById('error-section').classList.remove('hidden');
+}
+
+function copyJson() {
+    navigator.clipboard.writeText(JSON.stringify(entitymapData, null, 2));
+    event.target.textContent = 'Copied!';
+    setTimeout(() => event.target.textContent = 'Copy JSON', 2000);
+}
+
+function downloadJson() {
+    const blob = new Blob([JSON.stringify(entitymapData, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'entitymap.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

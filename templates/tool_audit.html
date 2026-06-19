@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}Commodity Content Audit — Free SEO Tool{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto">
+    <a href="{{ url_for('tools_landing') }}" class="text-sm text-brand-600 hover:underline">← All Tools</a>
+
+    <div class="mt-4 mb-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-3">Commodity Content Audit</h1>
+        <p class="text-gray-500">
+            Is your page differentiated, or could anyone have written it? This tool judges
+            your content against the pages currently ranking for your keyword and what AI
+            engines already say on the topic.
+        </p>
+    </div>
+
+    <!-- Input form -->
+    <div class="bg-white rounded-2xl border border-surface-200 p-8 mb-8" id="form-section">
+        <div class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Page URL</label>
+                <input type="url" id="url" placeholder="https://yoursite.com/your-page"
+                       class="w-full px-4 py-3 border border-surface-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none"
+                       required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Target Keyword</label>
+                <input type="text" id="keyword" placeholder="e.g. local SEO consultant Toronto"
+                       class="w-full px-4 py-3 border border-surface-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none"
+                       required>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Market</label>
+                    <select id="market" class="w-full px-4 py-3 border border-surface-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+                        <option value="us">🇺🇸 United States</option>
+                        <option value="uk">🇬🇧 United Kingdom</option>
+                        <option value="ca">🇨🇦 Canada</option>
+                        <option value="au">🇦🇺 Australia</option>
+                        <option value="de">🇩🇪 Germany</option>
+                        <option value="fr">🇫🇷 France</option>
+                        <option value="es">🇪🇸 Spain</option>
+                        <option value="it">🇮🇹 Italy</option>
+                        <option value="nl">🇳🇱 Netherlands</option>
+                        <option value="ie">🇮🇪 Ireland</option>
+                        <option value="se">🇸🇪 Sweden</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-gray-400 font-normal">(optional)</span></label>
+                    <input type="email" id="email" placeholder="you@example.com"
+                           class="w-full px-4 py-3 border border-surface-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-200 focus:border-brand-500 outline-none">
+                </div>
+            </div>
+            <button onclick="startAudit()" id="submit-btn"
+                    class="w-full py-3 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors">
+                Run Audit
+            </button>
+        </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="hidden bg-brand-50 border border-brand-200 rounded-2xl p-6 mb-8" id="progress-section">
+        <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-brand-600 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            <p class="text-sm font-medium text-brand-800" id="progress-text">Starting...</p>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="hidden" id="results-section">
+
+        <!-- Verdict card -->
+        <div class="rounded-2xl p-8 mb-6 text-center" id="verdict-card">
+            <p class="text-5xl font-extrabold mb-2" id="verdict-pct"></p>
+            <p class="text-lg font-semibold mb-1" id="verdict-label"></p>
+            <p class="text-sm opacity-75" id="verdict-ratio"></p>
+        </div>
+
+        <!-- Section breakdown -->
+        <div class="bg-white rounded-2xl border border-surface-200 p-6 mb-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">Section Breakdown</h3>
+            <div class="space-y-3" id="sections-list"></div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="bg-white rounded-2xl border border-surface-200 p-6 mb-6">
+            <h3 class="text-sm font-semibold text-gray-900 mb-4">What to Add (Non-Commodity Content Ideas)</h3>
+            <div class="space-y-4" id="recommendations-list"></div>
+        </div>
+
+        <!-- CTA -->
+        <div class="bg-gradient-to-r from-brand-600 to-brand-700 rounded-2xl p-8 text-center text-white">
+            <h3 class="text-lg font-bold mb-2">Want help creating the non-commodity content?</h3>
+            <p class="text-sm text-brand-100 mb-4">
+                I can help you write the content that AI engines can't replicate —
+                the stuff that makes your page the one worth citing.
+            </p>
+            <a href="https://eddienehani.com/get-in-touch/" target="_blank"
+               class="inline-block px-6 py-2.5 bg-white text-brand-700 font-semibold rounded-xl hover:bg-brand-50 transition-colors text-sm">
+                Book a Free Strategy Call
+            </a>
+        </div>
+    </div>
+
+    <!-- Error -->
+    <div class="hidden" id="error-section">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+            <p class="text-sm text-red-700" id="error-text"></p>
+            <button onclick="location.reload()" class="mt-3 px-4 py-2 text-xs font-medium bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
+                Try Again
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function startAudit() {
+    const url = document.getElementById('url').value.trim();
+    const keyword = document.getElementById('keyword').value.trim();
+    const market = document.getElementById('market').value;
+    const email = document.getElementById('email').value.trim();
+
+    if (!url || !keyword) { alert('Please enter a URL and keyword.'); return; }
+
+    document.getElementById('form-section').classList.add('opacity-50');
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = 'Running Audit...';
+    document.getElementById('progress-section').classList.remove('hidden');
+
+    try {
+        const resp = await fetch('/api/audit/run', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url, keyword, market, email})
+        });
+
+        if (resp.status === 429) {
+            const data = await resp.json();
+            showError(data.error);
+            return;
+        }
+
+        const {job_id} = await resp.json();
+        pollJob(job_id);
+    } catch (e) {
+        showError('Something went wrong. Please try again.');
+    }
+}
+
+async function pollJob(jobId) {
+    const resp = await fetch(`/api/job/${jobId}`);
+    const data = await resp.json();
+
+    if (data.status === 'running') {
+        document.getElementById('progress-text').textContent = data.progress;
+        setTimeout(() => pollJob(jobId), 2000);
+        return;
+    }
+
+    document.getElementById('progress-section').classList.add('hidden');
+    document.getElementById('form-section').classList.add('hidden');
+
+    if (data.result.error) {
+        showError(data.result.error);
+        return;
+    }
+
+    showResults(data.result);
+}
+
+function showResults(result) {
+    const pct = result.percentage || 0;
+
+    // Verdict card
+    const card = document.getElementById('verdict-card');
+    if (result.verdict === 'differentiated') {
+        card.className = 'rounded-2xl p-8 mb-6 text-center bg-green-50 text-green-800';
+    } else if (result.verdict === 'borderline') {
+        card.className = 'rounded-2xl p-8 mb-6 text-center bg-amber-50 text-amber-800';
+    } else {
+        card.className = 'rounded-2xl p-8 mb-6 text-center bg-red-50 text-red-800';
+    }
+    document.getElementById('verdict-pct').textContent = pct + '%';
+    document.getElementById('verdict-label').textContent =
+        result.verdict === 'differentiated' ? '✅ Differentiated' :
+        result.verdict === 'borderline' ? '⚠️ Borderline' : '🔴 Commodity-Heavy';
+    document.getElementById('verdict-ratio').textContent = result.ratio || '';
+
+    // Sections
+    const sections = result.sections || [];
+    document.getElementById('sections-list').innerHTML = sections.map(s => {
+        const isNon = s.status === 'non-commodity';
+        return `
+            <div class="flex items-start gap-3 p-3 rounded-xl ${isNon ? 'bg-green-50' : 'bg-surface-50'}">
+                <span class="text-lg mt-0.5">${isNon ? '✅' : '⚪'}</span>
+                <div>
+                    <p class="text-sm font-medium text-gray-900">${s.name}</p>
+                    <p class="text-xs text-gray-500 mt-0.5">${s.reasoning}</p>
+                </div>
+                <span class="ml-auto text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0
+                    ${isNon ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">
+                    ${isNon ? 'non-commodity' : 'commodity'}
+                </span>
+            </div>
+        `;
+    }).join('');
+
+    // Recommendations
+    const recs = result.recommendations || [];
+    document.getElementById('recommendations-list').innerHTML = recs.map((r, i) => `
+        <div class="border-l-4 border-brand-400 pl-4">
+            <p class="text-sm font-semibold text-gray-900">${i+1}. ${r.title}</p>
+            <p class="text-xs text-gray-600 mt-1">${r.description}</p>
+            <p class="text-xs text-brand-600 mt-1">Source: ${r.source}</p>
+        </div>
+    `).join('');
+
+    document.getElementById('results-section').classList.remove('hidden');
+}
+
+function showError(msg) {
+    document.getElementById('progress-section').classList.add('hidden');
+    document.getElementById('error-text').textContent = msg;
+    document.getElementById('error-section').classList.remove('hidden');
+}
+</script>
+{% endblock %}

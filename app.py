@@ -650,6 +650,184 @@ def settings():
 
 
 # ===========================================================================
+# PUBLIC TOOLS — Entity Map Generator + Commodity Audit
+# These are the client-facing tools. API keys stay server-side.
+# ===========================================================================
+
+from tools.entitymap import generate_entitymap
+from tools.audit import run_audit
+from tools.limiter import rate_limit, record_request, check_rate_limit
+
+# Background task tracking for public tools
+tool_jobs = {}  # {job_id: {"status": ..., "progress": ..., "result": ...}}
+
+
+@app.route("/tools")
+def tools_landing():
+    return render_template("tools_landing.html")
+
+
+# --- Entity Map Generator ---
+
+@app.route("/tools/entitymap")
+def entitymap_page():
+    return render_template("tool_entitymap.html")
+
+
+@app.route("/api/entitymap/generate", methods=["POST"])
+def api_entitymap_generate():
+    allowed, remaining = check_rate_limit("entitymap", limit=3, window=86400)
+    if not allowed:
+        return jsonify({"error": "Daily limit reached (3 per day). "
+                        "Enter your email to get unlimited access.",
+                        "requires_email": True}), 429
+
+    data = request.get_json() or {}
+    url = data.get("url", "").strip()
+    publisher_name = data.get("publisher_name", "").strip()
+    email = data.get("email", "").strip()
+
+    if not url:
+        return jsonify({"error": "URL is required."}), 400
+
+    import uuid
+    job_id = str(uuid.uuid4())[:8]
+    tool_jobs[job_id] = {"status": "running", "progress": "Starting...",
+                         "result": None, "tool": "entitymap"}
+
+    def run_job():
+        def progress(msg):
+            tool_jobs[job_id]["progress"] = msg
+
+        result = generate_entitymap(url, publisher_name or None,
+                                    progress_cb=progress)
+        tool_jobs[job_id]["status"] = "done"
+        tool_jobs[job_id]["result"] = result
+
+        # Log the lead if email provided
+        if email:
+            _log_lead(email, "entitymap", url)
+
+    record_request("entitymap")
+    thread = threading.Thread(target=run_job, daemon=True)
+    thread.start()
+
+    return jsonify({"job_id": job_id, "remaining": remaining - 1})
+
+
+# --- Commodity Audit ---
+
+@app.route("/tools/audit")
+def audit_page():
+    return render_template("tool_audit.html")
+
+
+@app.route("/api/audit/run", methods=["POST"])
+def api_audit_run():
+    allowed, remaining = check_rate_limit("audit", limit=3, window=86400)
+    if not allowed:
+        return jsonify({"error": "Daily limit reached (3 per day). "
+                        "Enter your email to get unlimited access.",
+                        "requires_email": True}), 429
+
+    data = request.get_json() or {}
+    url = data.get("url", "").strip()
+    keyword = data.get("keyword", "").strip()
+    market = data.get("market", "us").strip()
+    email = data.get("email", "").strip()
+
+    if not url or not keyword:
+        return jsonify({"error": "URL and keyword are required."}), 400
+
+    import uuid
+    job_id = str(uuid.uuid4())[:8]
+    tool_jobs[job_id] = {"status": "running", "progress": "Starting...",
+                         "result": None, "tool": "audit"}
+
+    def run_job():
+        def progress(msg):
+            tool_jobs[job_id]["progress"] = msg
+
+        result = run_audit(url, keyword, market, progress_cb=progress)
+        tool_jobs[job_id]["status"] = "done"
+        tool_jobs[job_id]["result"] = result
+
+        if email:
+            _log_lead(email, "audit", url)
+
+    record_request("audit")
+    thread = threading.Thread(target=run_job, daemon=True)
+    thread.start()
+
+    return jsonify({"job_id": job_id, "remaining": remaining - 1})
+
+
+# --- Shared: job status + lead logging ---
+
+@app.route("/api/job/<job_id>")
+def api_job_status(job_id):
+    job = tool_jobs.get(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+    if job["status"] == "running":
+        return jsonify({"status": "running", "progress": job["progress"]})
+    return jsonify({"status": "done", "result": job["result"]})
+
+
+def _log_lead(email, tool, url):
+    """Log a lead to the database."""
+    try:
+        db = get_db()
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS leads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL,
+                tool TEXT,
+                url TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
+            )
+        """)
+        db.execute("INSERT INTO leads (email, tool, url) VALUES (?, ?, ?)",
+                   (email, tool, url))
+        db.commit()
+        db.close()
+    except Exception:
+        pass  # Don't break the tool if lead logging fails
+
+
+@app.route("/api/leads")
+def api_leads():
+    """View collected leads (private — for your eyes only)."""
+    db = get_db()
+    try:
+        leads = db.execute("SELECT * FROM leads ORDER BY created_at DESC LIMIT 100").fetchall()
+        db.close()
+        return jsonify([dict(l) for l in leads])
+    except Exception:
+        db.close()
+        return jsonify([])
+
+
+# --- CORS support for WordPress embedding ---
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get("Origin", "")
+    # Allow your own domain + localhost for dev
+    allowed_origins = [
+        "https://eddienehani.com",
+        "https://www.eddienehani.com",
+        "http://localhost",
+        "http://127.0.0.1",
+    ]
+    if any(origin.startswith(o) for o in allowed_origins) or not origin:
+        response.headers["Access-Control-Allow-Origin"] = origin or "*"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
+
+# ===========================================================================
 # CLI mode (keep backward compat with the standalone script)
 # ===========================================================================
 
@@ -662,6 +840,6 @@ if __name__ == "__main__":
                 project_id = int(sys.argv[i + 1])
         _run_all_background(project_id)
     else:
-        print("\n  Brand Visibility Tracker")
+        print("\n  SEO Tools Platform")
         print("  Starting web interface at http://localhost:5001\n")
         app.run(debug=True, port=5001)
