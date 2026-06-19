@@ -1,0 +1,209 @@
+<!-- 
+  COMMODITY CONTENT AUDIT — WordPress Embed
+  ==========================================
+  Paste this into a WordPress Custom HTML block.
+  Creates a native-looking form that calls your Render backend.
+  
+  To use: In WordPress editor → Add Block → Custom HTML → Paste this entire file
+-->
+<div id="en-audit-tool">
+  <style>
+    #en-audit-tool {
+      max-width: 720px;
+      margin: 0 auto;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    #en-audit-tool * { box-sizing: border-box; }
+    .en-a-header { text-align: center; margin-bottom: 32px; }
+    .en-a-header h2 { font-size: 28px; font-weight: 800; color: #1a1a2e; margin: 0 0 8px; }
+    .en-a-header p { font-size: 15px; color: #6b7280; margin: 0; line-height: 1.6; }
+    .en-a-form { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 32px; margin-bottom: 24px; }
+    .en-a-field { margin-bottom: 20px; }
+    .en-a-field label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .en-a-field label span { font-weight: 400; color: #9ca3af; }
+    .en-a-field input, .en-a-field select { width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; background: #fff; }
+    .en-a-field input:focus, .en-a-field select:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.1); }
+    .en-a-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .en-a-btn { width: 100%; padding: 14px; font-size: 14px; font-weight: 700; color: #fff; background: #1a73e8; border: none; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
+    .en-a-btn:hover { background: #155bb5; }
+    .en-a-btn:disabled { background: #93c5fd; cursor: not-allowed; }
+    .en-a-progress { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    .en-a-spinner { width: 20px; height: 20px; border: 3px solid #bfdbfe; border-top-color: #1a73e8; border-radius: 50%; animation: en-a-spin 0.8s linear infinite; flex-shrink: 0; }
+    @keyframes en-a-spin { to { transform: rotate(360deg); } }
+    .en-a-progress-text { font-size: 14px; font-weight: 500; color: #1e40af; }
+    .en-a-verdict { border-radius: 16px; padding: 36px; text-align: center; margin-bottom: 24px; }
+    .en-a-verdict-green { background: #ecfdf5; color: #065f46; }
+    .en-a-verdict-amber { background: #fffbeb; color: #92400e; }
+    .en-a-verdict-red { background: #fef2f2; color: #991b1b; }
+    .en-a-verdict-pct { font-size: 56px; font-weight: 800; margin: 0; }
+    .en-a-verdict-label { font-size: 20px; font-weight: 700; margin: 4px 0; }
+    .en-a-verdict-ratio { font-size: 14px; opacity: 0.7; }
+    .en-a-sections { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+    .en-a-sections h3 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0 0 16px; }
+    .en-a-section { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 10px; margin-bottom: 8px; }
+    .en-a-section-good { background: #ecfdf5; }
+    .en-a-section-bad { background: #f9fafb; }
+    .en-a-section-icon { font-size: 18px; margin-top: 2px; flex-shrink: 0; }
+    .en-a-section-name { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+    .en-a-section-reason { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .en-a-section-badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 20px; flex-shrink: 0; white-space: nowrap; }
+    .en-a-badge-good { background: #d1fae5; color: #065f46; }
+    .en-a-badge-bad { background: #f3f4f6; color: #6b7280; }
+    .en-a-recs { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+    .en-a-recs h3 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0 0 16px; }
+    .en-a-rec { border-left: 4px solid #1a73e8; padding-left: 16px; margin-bottom: 16px; }
+    .en-a-rec-title { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+    .en-a-rec-desc { font-size: 12px; color: #4b5563; margin-top: 4px; }
+    .en-a-rec-source { font-size: 12px; color: #1a73e8; margin-top: 4px; }
+    .en-a-cta { background: linear-gradient(135deg, #1a73e8, #155bb5); border-radius: 16px; padding: 36px; text-align: center; color: #fff; }
+    .en-a-cta h3 { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
+    .en-a-cta p { font-size: 14px; color: #bfdbfe; margin: 0 0 20px; }
+    .en-a-cta a { display: inline-block; padding: 12px 28px; background: #fff; color: #1a73e8; font-size: 14px; font-weight: 700; border-radius: 10px; text-decoration: none; transition: background 0.2s; }
+    .en-a-cta a:hover { background: #eff6ff; }
+    .en-a-error { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 24px; text-align: center; }
+    .en-a-error p { font-size: 14px; color: #b91c1c; margin: 0 0 12px; }
+    .en-a-error button { padding: 8px 20px; font-size: 13px; font-weight: 600; background: #fee2e2; color: #b91c1c; border: none; border-radius: 8px; cursor: pointer; }
+    .en-a-hidden { display: none !important; }
+    @media (max-width: 600px) { .en-a-row { grid-template-columns: 1fr; } .en-a-form { padding: 20px; } }
+  </style>
+
+  <div class="en-a-header">
+    <h2>Commodity Content Audit</h2>
+    <p>Is your page differentiated, or could anyone have written it? This tool judges your content against the pages currently ranking for your keyword and what AI engines already say.</p>
+  </div>
+
+  <div class="en-a-form" id="en-a-form">
+    <div class="en-a-field">
+      <label>Page URL</label>
+      <input type="url" id="en-a-url" placeholder="https://yoursite.com/your-page">
+    </div>
+    <div class="en-a-field">
+      <label>Target Keyword</label>
+      <input type="text" id="en-a-keyword" placeholder="e.g. local SEO consultant Toronto">
+    </div>
+    <div class="en-a-row">
+      <div class="en-a-field">
+        <label>Market</label>
+        <select id="en-a-market">
+          <option value="us">🇺🇸 United States</option>
+          <option value="uk">🇬🇧 United Kingdom</option>
+          <option value="ca">🇨🇦 Canada</option>
+          <option value="au">🇦🇺 Australia</option>
+          <option value="de">🇩🇪 Germany</option>
+          <option value="fr">🇫🇷 France</option>
+          <option value="es">🇪🇸 Spain</option>
+          <option value="it">🇮🇹 Italy</option>
+          <option value="nl">🇳🇱 Netherlands</option>
+          <option value="ie">🇮🇪 Ireland</option>
+          <option value="se">🇸🇪 Sweden</option>
+        </select>
+      </div>
+      <div class="en-a-field">
+        <label>Email <span>(optional)</span></label>
+        <input type="email" id="en-a-email" placeholder="you@example.com">
+      </div>
+    </div>
+    <button class="en-a-btn" id="en-a-btn" onclick="enAStart()">Run Audit</button>
+  </div>
+
+  <div class="en-a-progress en-a-hidden" id="en-a-progress">
+    <div class="en-a-spinner"></div>
+    <span class="en-a-progress-text" id="en-a-progress-text">Starting...</span>
+  </div>
+
+  <div class="en-a-hidden" id="en-a-results"></div>
+  <div class="en-a-hidden" id="en-a-error"></div>
+
+  <script>
+    const EN_A_API = 'https://brand-visibility-285f.onrender.com';
+
+    async function enAStart() {
+      const url = document.getElementById('en-a-url').value.trim();
+      const keyword = document.getElementById('en-a-keyword').value.trim();
+      const market = document.getElementById('en-a-market').value;
+      const email = document.getElementById('en-a-email').value.trim();
+      if (!url || !keyword) { alert('Please enter a URL and keyword.'); return; }
+
+      document.getElementById('en-a-btn').disabled = true;
+      document.getElementById('en-a-btn').textContent = 'Running Audit...';
+      document.getElementById('en-a-progress').classList.remove('en-a-hidden');
+
+      try {
+        const resp = await fetch(EN_A_API + '/api/audit/run', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({url, keyword, market, email})
+        });
+        if (resp.status === 429) {
+          enAError('Daily limit reached (3 per day). Book a call for unlimited access.');
+          return;
+        }
+        const {job_id} = await resp.json();
+        enAPoll(job_id);
+      } catch(e) { enAError('Something went wrong. Please try again.'); }
+    }
+
+    async function enAPoll(jobId) {
+      const resp = await fetch(EN_A_API + '/api/job/' + jobId);
+      const data = await resp.json();
+      if (data.status === 'running') {
+        document.getElementById('en-a-progress-text').textContent = data.progress;
+        setTimeout(() => enAPoll(jobId), 2000);
+        return;
+      }
+      document.getElementById('en-a-progress').classList.add('en-a-hidden');
+      if (data.result.error) { enAError(data.result.error); return; }
+      enAShow(data.result);
+    }
+
+    function enAShow(r) {
+      const pct = r.percentage || 0;
+      const vClass = r.verdict === 'differentiated' ? 'green' : r.verdict === 'borderline' ? 'amber' : 'red';
+      const vIcon = r.verdict === 'differentiated' ? '✅ Differentiated' : r.verdict === 'borderline' ? '⚠️ Borderline' : '🔴 Commodity-Heavy';
+
+      let html = `
+        <div class="en-a-verdict en-a-verdict-${vClass}">
+          <p class="en-a-verdict-pct">${pct}%</p>
+          <p class="en-a-verdict-label">${vIcon}</p>
+          <p class="en-a-verdict-ratio">${r.ratio || ''}</p>
+        </div>
+        <div class="en-a-sections"><h3>Section Breakdown</h3>
+          ${(r.sections||[]).map(s => {
+            const good = s.status === 'non-commodity';
+            return `<div class="en-a-section ${good ? 'en-a-section-good' : 'en-a-section-bad'}">
+              <span class="en-a-section-icon">${good ? '✅' : '⚪'}</span>
+              <div>
+                <div class="en-a-section-name">${s.name}</div>
+                <div class="en-a-section-reason">${s.reasoning}</div>
+              </div>
+              <span class="en-a-section-badge ${good ? 'en-a-badge-good' : 'en-a-badge-bad'}">${good ? 'non-commodity' : 'commodity'}</span>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="en-a-recs"><h3>What to Add (Non-Commodity Content Ideas)</h3>
+          ${(r.recommendations||[]).map((rec, i) => `
+            <div class="en-a-rec">
+              <div class="en-a-rec-title">${i+1}. ${rec.title}</div>
+              <div class="en-a-rec-desc">${rec.description}</div>
+              <div class="en-a-rec-source">Source: ${rec.source}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="en-a-cta">
+          <h3>Want help creating the non-commodity content?</h3>
+          <p>I can help you write the content that AI engines can't replicate — the stuff that makes your page the one worth citing.</p>
+          <a href="https://eddienehani.com/get-in-touch/">Book a Free Strategy Call</a>
+        </div>
+      `;
+      document.getElementById('en-a-form').classList.add('en-a-hidden');
+      document.getElementById('en-a-results').innerHTML = html;
+      document.getElementById('en-a-results').classList.remove('en-a-hidden');
+    }
+
+    function enAError(msg) {
+      document.getElementById('en-a-progress').classList.add('en-a-hidden');
+      document.getElementById('en-a-error').innerHTML = `<div class="en-a-error"><p>${msg}</p><button onclick="location.reload()">Try Again</button></div>`;
+      document.getElementById('en-a-error').classList.remove('en-a-hidden');
+    }
+  </script>
+</div>

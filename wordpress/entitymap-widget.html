@@ -1,0 +1,207 @@
+<!-- 
+  ENTITY MAP GENERATOR — WordPress Embed
+  ========================================
+  Paste this into a WordPress Custom HTML block.
+  Creates a native-looking form that calls your Render backend.
+  
+  To use: In WordPress editor → Add Block → Custom HTML → Paste this entire file
+-->
+<div id="en-entitymap-tool">
+  <style>
+    #en-entitymap-tool {
+      max-width: 720px;
+      margin: 0 auto;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    #en-entitymap-tool * { box-sizing: border-box; }
+    .en-tool-header { text-align: center; margin-bottom: 32px; }
+    .en-tool-header h2 { font-size: 28px; font-weight: 800; color: #1a1a2e; margin: 0 0 8px; }
+    .en-tool-header p { font-size: 15px; color: #6b7280; margin: 0; line-height: 1.6; }
+    .en-tool-header a { color: #1a73e8; text-decoration: none; }
+    .en-tool-header a:hover { text-decoration: underline; }
+    .en-form { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 32px; margin-bottom: 24px; }
+    .en-field { margin-bottom: 20px; }
+    .en-field label { display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .en-field label span { font-weight: 400; color: #9ca3af; }
+    .en-field input { width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .en-field input:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.1); }
+    .en-btn { width: 100%; padding: 14px; font-size: 14px; font-weight: 700; color: #fff; background: #1a73e8; border: none; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
+    .en-btn:hover { background: #155bb5; }
+    .en-btn:disabled { background: #93c5fd; cursor: not-allowed; }
+    .en-progress { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    .en-spinner { width: 20px; height: 20px; border: 3px solid #bfdbfe; border-top-color: #1a73e8; border-radius: 50%; animation: en-spin 0.8s linear infinite; flex-shrink: 0; }
+    @keyframes en-spin { to { transform: rotate(360deg); } }
+    .en-progress-text { font-size: 14px; font-weight: 500; color: #1e40af; }
+    .en-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .en-stat { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; text-align: center; }
+    .en-stat-num { font-size: 28px; font-weight: 800; color: #1a73e8; }
+    .en-stat-label { font-size: 11px; color: #6b7280; margin-top: 4px; }
+    .en-entities { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+    .en-entities h3 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0 0 16px; }
+    .en-entity { border: 1px solid #f3f4f6; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+    .en-entity-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .en-type-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+    .en-type-Person { background: #eff6ff; color: #1d4ed8; }
+    .en-type-Organization { background: #f5f3ff; color: #6d28d9; }
+    .en-type-Service { background: #ecfdf5; color: #059669; }
+    .en-type-Concept { background: #fffbeb; color: #b45309; }
+    .en-type-ProprietaryTerm { background: #fef2f2; color: #dc2626; }
+    .en-type-Methodology { background: #eef2ff; color: #4338ca; }
+    .en-type-Metric { background: #ecfeff; color: #0891b2; }
+    .en-type-Event { background: #fdf4ff; color: #a21caf; }
+    .en-entity-name { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+    .en-entity-desc { font-size: 12px; color: #6b7280; margin: 0; }
+    .en-entity-meta { font-size: 11px; color: #9ca3af; margin-top: 6px; }
+    .en-json-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+    .en-json-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .en-json-head h3 { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0; }
+    .en-json-btns { display: flex; gap: 8px; }
+    .en-btn-sm { padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer; border: 1px solid #d1d5db; background: #fff; color: #374151; transition: background 0.2s; }
+    .en-btn-sm:hover { background: #f9fafb; }
+    .en-btn-dl { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+    .en-btn-dl:hover { background: #155bb5; }
+    .en-json-pre { background: #111827; color: #e5e7eb; border-radius: 10px; padding: 16px; font-size: 12px; overflow-x: auto; max-height: 320px; overflow-y: auto; white-space: pre; font-family: 'SF Mono', Monaco, Consolas, monospace; }
+    .en-cta { background: linear-gradient(135deg, #1a73e8, #155bb5); border-radius: 16px; padding: 36px; text-align: center; color: #fff; }
+    .en-cta h3 { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
+    .en-cta p { font-size: 14px; color: #bfdbfe; margin: 0 0 20px; }
+    .en-cta a { display: inline-block; padding: 12px 28px; background: #fff; color: #1a73e8; font-size: 14px; font-weight: 700; border-radius: 10px; text-decoration: none; transition: background 0.2s; }
+    .en-cta a:hover { background: #eff6ff; }
+    .en-error { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 24px; text-align: center; }
+    .en-error p { font-size: 14px; color: #b91c1c; margin: 0 0 12px; }
+    .en-error button { padding: 8px 20px; font-size: 13px; font-weight: 600; background: #fee2e2; color: #b91c1c; border: none; border-radius: 8px; cursor: pointer; }
+    .en-hidden { display: none !important; }
+    @media (max-width: 600px) {
+      .en-stats { grid-template-columns: repeat(2, 1fr); }
+      .en-form { padding: 20px; }
+    }
+  </style>
+
+  <div class="en-tool-header">
+    <h2>Entity Map Generator</h2>
+    <p>Generate a valid <code>entitymap.json</code> for your website — the file that tells AI systems what your site knows. Based on the <a href="https://entitymap.org/spec/v1.0" target="_blank">EntityMap v1.0</a> open standard.</p>
+  </div>
+
+  <div class="en-form" id="en-em-form">
+    <div class="en-field">
+      <label>Website URL</label>
+      <input type="url" id="en-em-url" placeholder="https://yoursite.com">
+    </div>
+    <div class="en-field">
+      <label>Brand / Publisher Name</label>
+      <input type="text" id="en-em-name" placeholder="e.g. Acme Corp">
+    </div>
+    <div class="en-field">
+      <label>Email <span>(optional — get notified when it's ready)</span></label>
+      <input type="email" id="en-em-email" placeholder="you@example.com">
+    </div>
+    <button class="en-btn" id="en-em-btn" onclick="enEmStart()">Generate Entity Map</button>
+  </div>
+
+  <div class="en-progress en-hidden" id="en-em-progress">
+    <div class="en-spinner"></div>
+    <span class="en-progress-text" id="en-em-progress-text">Starting...</span>
+  </div>
+
+  <div class="en-hidden" id="en-em-results"></div>
+  <div class="en-hidden" id="en-em-error"></div>
+
+  <script>
+    const EN_API = 'https://brand-visibility-285f.onrender.com';
+    let enEmData = null;
+
+    async function enEmStart() {
+      const url = document.getElementById('en-em-url').value.trim();
+      const name = document.getElementById('en-em-name').value.trim();
+      const email = document.getElementById('en-em-email').value.trim();
+      if (!url) { alert('Please enter a URL.'); return; }
+
+      document.getElementById('en-em-btn').disabled = true;
+      document.getElementById('en-em-btn').textContent = 'Generating...';
+      document.getElementById('en-em-progress').classList.remove('en-hidden');
+
+      try {
+        const resp = await fetch(EN_API + '/api/entitymap/generate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({url, publisher_name: name, email})
+        });
+        if (resp.status === 429) {
+          enEmError('Daily limit reached (3 per day). Book a call for unlimited access.');
+          return;
+        }
+        const {job_id} = await resp.json();
+        enEmPoll(job_id);
+      } catch(e) { enEmError('Something went wrong. Please try again.'); }
+    }
+
+    async function enEmPoll(jobId) {
+      const resp = await fetch(EN_API + '/api/job/' + jobId);
+      const data = await resp.json();
+      if (data.status === 'running') {
+        document.getElementById('en-em-progress-text').textContent = data.progress;
+        setTimeout(() => enEmPoll(jobId), 2000);
+        return;
+      }
+      document.getElementById('en-em-progress').classList.add('en-hidden');
+      if (data.result.error) { enEmError(data.result.error); return; }
+      enEmShow(data.result);
+    }
+
+    function enEmShow(result) {
+      enEmData = result.entitymap;
+      const s = result.stats;
+      const colors = {Person:'Person',Organization:'Organization',Service:'Service',Concept:'Concept',ProprietaryTerm:'ProprietaryTerm',Methodology:'Methodology',Metric:'Metric',Event:'Event'};
+
+      let html = `
+        <div class="en-stats">
+          <div class="en-stat"><div class="en-stat-num">${s.pages_crawled}</div><div class="en-stat-label">Pages Crawled</div></div>
+          <div class="en-stat"><div class="en-stat-num">${s.entities_found}</div><div class="en-stat-label">Entities</div></div>
+          <div class="en-stat"><div class="en-stat-num">${s.total_chunks}</div><div class="en-stat-label">Evidence Chunks</div></div>
+          <div class="en-stat"><div class="en-stat-num">${s.total_relations}</div><div class="en-stat-label">Relations</div></div>
+        </div>
+        <div class="en-entities"><h3>Entities Found</h3>
+          ${enEmData.entities.map(e => `
+            <div class="en-entity">
+              <div class="en-entity-head">
+                <span class="en-type-badge en-type-${e['@type']}">${e['@type']}</span>
+                <span class="en-entity-name">${e.name}</span>
+              </div>
+              <p class="en-entity-desc">${e.description || ''}</p>
+              <div class="en-entity-meta">${(e.hasChunks||[]).length} chunks · ${(e.relations||[]).length} relations</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="en-json-box">
+          <div class="en-json-head">
+            <h3>entitymap.json</h3>
+            <div class="en-json-btns">
+              <button class="en-btn-sm" onclick="navigator.clipboard.writeText(JSON.stringify(enEmData,null,2));this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+              <button class="en-btn-sm en-btn-dl" onclick="enEmDownload()">Download</button>
+            </div>
+          </div>
+          <pre class="en-json-pre">${JSON.stringify(enEmData, null, 2)}</pre>
+        </div>
+        <div class="en-cta">
+          <h3>Want to know if AI engines actually cite your entities?</h3>
+          <p>The entity map tells AI what you know. But is it working? I can audit your AI visibility and show you exactly where you're invisible.</p>
+          <a href="https://eddienehani.com/get-in-touch/">Book a Free Strategy Call</a>
+        </div>
+      `;
+      document.getElementById('en-em-form').classList.add('en-hidden');
+      document.getElementById('en-em-results').innerHTML = html;
+      document.getElementById('en-em-results').classList.remove('en-hidden');
+    }
+
+    function enEmError(msg) {
+      document.getElementById('en-em-progress').classList.add('en-hidden');
+      document.getElementById('en-em-error').innerHTML = `<div class="en-error"><p>${msg}</p><button onclick="location.reload()">Try Again</button></div>`;
+      document.getElementById('en-em-error').classList.remove('en-hidden');
+    }
+
+    function enEmDownload() {
+      const blob = new Blob([JSON.stringify(enEmData, null, 2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'entitymap.json'; a.click(); URL.revokeObjectURL(a.href);
+    }
+  </script>
+</div>

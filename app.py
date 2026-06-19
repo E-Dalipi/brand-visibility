@@ -817,6 +817,7 @@ def add_cors_headers(response):
     allowed_origins = [
         "https://eddienehani.com",
         "https://www.eddienehani.com",
+        "https://brand-visibility-285f.onrender.com",
         "http://localhost",
         "http://127.0.0.1",
     ]
